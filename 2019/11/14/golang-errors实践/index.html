@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="Golang," />
 
 
 
@@ -79,11 +79,15 @@
 
 
 
-<meta property="og:type" content="website">
-<meta property="og:title" content="兔子爱吃蛋炒饭">
-<meta property="og:url" content="http:&#x2F;&#x2F;yoursite.com&#x2F;index.html">
+<meta name="description" content="作为一个web服务，错误日志的打印和根据不同的错误返回不同的code，是两个绕不开的点。其他语言一般通过try catch 来捕捉exception，从而获取对应的错误以及错误码。但是go语言中，则是通过显式的返回error，通过判断error来获取错误。因为error本身只有Error方法，则会导致一下几个问题。  代码中出现大量的error!=nil，并在下面打印出日志 error本身只有Er">
+<meta name="keywords" content="Golang">
+<meta property="og:type" content="article">
+<meta property="og:title" content="golang errors实践">
+<meta property="og:url" content="http:&#x2F;&#x2F;yoursite.com&#x2F;2019&#x2F;11&#x2F;14&#x2F;golang-errors%E5%AE%9E%E8%B7%B5&#x2F;index.html">
 <meta property="og:site_name" content="兔子爱吃蛋炒饭">
+<meta property="og:description" content="作为一个web服务，错误日志的打印和根据不同的错误返回不同的code，是两个绕不开的点。其他语言一般通过try catch 来捕捉exception，从而获取对应的错误以及错误码。但是go语言中，则是通过显式的返回error，通过判断error来获取错误。因为error本身只有Error方法，则会导致一下几个问题。  代码中出现大量的error!=nil，并在下面打印出日志 error本身只有Er">
 <meta property="og:locale" content="en">
+<meta property="og:updated_time" content="2019-11-19T12:43:31.494Z">
 <meta name="twitter:card" content="summary">
 
 
@@ -114,13 +118,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/"/>
+  <link rel="canonical" href="http://yoursite.com/2019/11/14/golang-errors实践/"/>
 
 
 
 
 
-  <title>兔子爱吃蛋炒饭</title>
+  <title>golang errors实践 | 兔子爱吃蛋炒饭</title>
   
 
 
@@ -139,8 +143,7 @@
     
   
 
-  <div class="container sidebar-position-left 
-  page-home">
+  <div class="container sidebar-position-left page-post-detail">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -243,152 +246,9 @@
         <div class="content-wrap">
           <div id="content" class="content">
             
-  <section id="posts" class="posts-expand">
+
+  <div id="posts" class="posts-expand">
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/11/19/%E5%88%86%E4%BA%AB%E7%A0%81%E7%94%9F%E6%88%90%E7%AD%96%E7%95%A5/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Ricky Wang">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="兔子爱吃蛋炒饭">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/11/19/%E5%88%86%E4%BA%AB%E7%A0%81%E7%94%9F%E6%88%90%E7%AD%96%E7%95%A5/" itemprop="url">分享码生成策略</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-11-19T16:28:00+08:00">
-                2019-11-19
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>目前微信对分享外链的限制越来越严格，对于有营销分享属性的，依托于微信的生态的h5活动都存在被封的风险。微信作为及其重要的分享途径，我们又没办法舍弃。所以我们寻求使用分享码的策略，来在微信上进行分享传播。</p>
-<h1 id="实际场景中的应用"><a href="#实际场景中的应用" class="headerlink" title="实际场景中的应用"></a>实际场景中的应用</h1><h2 id="拼多多领现金"><a href="#拼多多领现金" class="headerlink" title="拼多多领现金"></a>拼多多领现金</h2><p>拼多多领现金是通过分享文本的形式，文本中包含跳转的短链接，用户点击链接跳转到h5。复制分享码也会在app中跳转。</p>
-<p><img src="/2019/11/19/%E5%88%86%E4%BA%AB%E7%A0%81%E7%94%9F%E6%88%90%E7%AD%96%E7%95%A5/image-20191119191939937.png" alt="image-20191119191939937"></p>
-<h2 id="淘口令"><a href="#淘口令" class="headerlink" title="淘口令"></a>淘口令</h2><p>阿里和腾讯不可名状的关系导致淘宝通过微信的手段来分享购物链接成为一个不可能的事情，淘宝转而使用分享码来分享物品。</p>
-<p><img src="/2019/11/19/%E5%88%86%E4%BA%AB%E7%A0%81%E7%94%9F%E6%88%90%E7%AD%96%E7%95%A5/share-code-4161949.png" alt="share-code"></p>
-<p>分成3个阶段</p>
-<ol>
-<li>生成转发文本，并且跳转到微信</li>
-<li>通过微信转发文本，用户复制文本</li>
-<li>客户端读取粘贴板，解析对应的参数，<a href="https://open.taobao.com/api.htm?spm=a219a.7386797.0.0.6a3b2cbf3Ng60T&source=search&docId=32461&docType=2" target="_blank" rel="noopener">淘宝解析淘口令接口</a></li>
-</ol>
-<h2 id="分享文本特性"><a href="#分享文本特性" class="headerlink" title="分享文本特性"></a>分享文本特性</h2><h3 id="关键字段的转换"><a href="#关键字段的转换" class="headerlink" title="关键字段的转换"></a>关键字段的转换</h3><p>关键使用方法的转换：复̑制，复̚制，復zんíゞ，復ず■淛，椱ァ製</p>
-<p>商标名称的转换：拼̆꒯℧ō꒬∪о，淘灬寳，綯℡寳</p>
-<h3 id="提炼分享码"><a href="#提炼分享码" class="headerlink" title="提炼分享码"></a>提炼分享码</h3><p>文本包含地址存在外链被封的风险，所以都会附带特殊的分享码。</p>
-<p>拼多多将特殊的分享码放在了最后一行，而淘宝则把通过特殊符号₤，€等进行分割。</p>
-<h1 id="实现逻辑"><a href="#实现逻辑" class="headerlink" title="实现逻辑"></a>实现逻辑</h1><p>分享码从逻辑上，在于分享码和长地址的映射关系，本质上来说和长URL生成短URL是一样，所以，我们接下来思考的方向在于，如何使用短key，定位一个对象（链接，商品等）。</p>
-<h2 id="方案一"><a href="#方案一" class="headerlink" title="方案一"></a>方案一</h2><p>通过一种hash策略，将一个长URL哈希成一个分享码。然后通过逆向哈希来将分享码解为原来的长URL。</p>
-<p>在存在这种hash策略情况下，这种方案不需要额外的存储，好像完美到无以复加。但是人类世界不可能存在完美，显然这个方案是错误的。固定长度的短key，在assci码的情况下，短key的集合是<strong>有限</strong>。但是商品或者长链接是<strong>无限</strong>。根据抽屉原理，一定存在多个对象映射一个短key的情况。</p>
-<h2 id="方案二"><a href="#方案二" class="headerlink" title="方案二"></a>方案二</h2><p>在<strong>方案一</strong>的基础上，我们承认hash冲突。我们将所有的key存储下来，如果发现hash冲突，我们将key追加类似于1,2,3后缀。这个从逻辑没什么问题，但是有一下几个缺点。1.短key的长度将不受限制。2.每次生成hash我都需要做一个全局的hash冲突校验，非常耗时。</p>
-<h2 id="最终方案"><a href="#最终方案" class="headerlink" title="最终方案"></a>最终方案</h2><p><strong>序号发生器，作为短key的生成</strong>。对于序号发生器一般都是数字类型，我们可以将int 做一个base62的转换，得到对应的字符串。对于分布式系统，我们可以选择通过<a href="https://github.com/bwmarrin/snowflake" target="_blank" rel="noopener">snowflake算法</a>来实现序发生。绝大部份的序号发生的算法都是int64类型，去掉符号位，2^63种结果，对于系统来说，基本是无限的。但是对于key的长度严格限制，就是非常短的情况下，需要做key的回收工作。</p>
-<p><strong>redis存储分享码和对象映射关系</strong>。生成的key都是存在过期的，我们可以将key已经对应的对象存入redis当中，并且设置ttl。这样，我们可以通过解析粘贴板的文本，获取到分享码，然后通过redis获取对应的对象。可能有些小朋友要问了，<strong>那对于相同的对象，怎么保证生成的短key也是相同的</strong>。其实我们从拼多多和淘宝可以看到，他们每次生成分享码，都是全新的。</p>
-<p><strong>如果业务需求必须相同的对象对应相同的分享码</strong>。如果我们要保证相同的对象都生成相同的key，我们则需要存储全量的对象为主键的映射关系，而且每次生成都需要全量的查询。这样时间复杂就退化成了方案二，有些得不偿失。所以我们可以考虑将需求降级——在有限时间内相同的对象都生成相同的key。我们可以将对象作为key（json，base64等），并且设置一定的ttl，在这个时间片内，我们查询如果已经存在，则返回相同的分享码。</p>
-<h3 id="分享码"><a href="#分享码" class="headerlink" title="分享码"></a>分享码</h3><p>作为分享码，我们只需要再把生成的分享码通过特殊字符，或者单独生成一行等方式放入分享文本中。只要保证我们可以定位到分享码就行。端上通过获取用户粘贴板的内容，得到对应的分享码，然后请求后端，返回商品的信息。</p>
-<h3 id="短URL"><a href="#短URL" class="headerlink" title="短URL"></a>短URL</h3><p>短URL是直接请求服务端，服务端解析短URLkey，通过code 301 or 302，并且返回原本的链接地址。浏览器会重新定位到长的链接地址，展示给用户对应的网站。</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
 
   
 
@@ -418,9 +278,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/11/14/golang-errors%E5%AE%9E%E8%B7%B5/" itemprop="url">golang errors实践</a></h1>
+          <h1 class="post-title" itemprop="name headline">golang errors实践</h1>
         
 
         <div class="post-meta">
@@ -470,9 +328,7 @@
       
 
       
-        
-          
-            <p>作为一个web服务，错误日志的打印和根据不同的错误返回不同的code，是两个绕不开的点。其他语言一般通过try catch 来捕捉exception，从而获取对应的错误以及错误码。但是go语言中，则是通过显式的返回error，通过判断error来获取错误。因为error本身只有Error方法，则会导致一下几个问题。</p>
+        <p>作为一个web服务，错误日志的打印和根据不同的错误返回不同的code，是两个绕不开的点。其他语言一般通过try catch 来捕捉exception，从而获取对应的错误以及错误码。但是go语言中，则是通过显式的返回error，通过判断error来获取错误。因为error本身只有Error方法，则会导致一下几个问题。</p>
 <ol>
 <li>代码中出现大量的error!=nil，并在下面打印出日志</li>
 <li>error本身只有Error，无法像exception携带code，message等信息</li>
@@ -498,8 +354,6 @@
 <li>错误日志统一由最上层的调用者打印</li>
 </ol>
 
-          
-        
       
     </div>
     
@@ -514,14 +368,36 @@
 
     <footer class="post-footer">
       
-
+        <div class="post-tags">
+          
+            <a href="/tags/Golang/" rel="tag"># Golang</a>
+          
+        </div>
       
 
       
+      
+      
 
       
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/11/19/%E5%88%86%E4%BA%AB%E7%A0%81%E7%94%9F%E6%88%90%E7%AD%96%E7%95%A5/" rel="prev" title="分享码生成策略">
+                分享码生成策略 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
       
-        <div class="post-eof"></div>
+
+      
       
     </footer>
   </div>
@@ -531,10 +407,11 @@
   </article>
 
 
-    
-  </section>
 
-  
+    <div class="post-spread">
+      
+    </div>
+  </div>
 
 
           </div>
@@ -542,6 +419,10 @@
 
 
           
+
+  
+
+
 
         </div>
         
@@ -562,8 +443,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -614,6 +504,22 @@
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#生成一个error"><span class="nav-number">1.</span> <span class="nav-text">生成一个error</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#给error添加stack或者message"><span class="nav-number">2.</span> <span class="nav-text">给error添加stack或者message</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#获取根因"><span class="nav-number">2.1.</span> <span class="nav-text">获取根因</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#给error追加code信息"><span class="nav-number">3.</span> <span class="nav-text">给error追加code信息</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#创建code"><span class="nav-number">3.1.</span> <span class="nav-text">创建code</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#追加和获取code"><span class="nav-number">3.2.</span> <span class="nav-text">追加和获取code</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#建议"><span class="nav-number">4.</span> <span class="nav-text">建议</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
@@ -754,6 +660,10 @@
 
 
   
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
 
   
 
