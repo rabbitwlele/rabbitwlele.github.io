@@ -80,9 +80,9 @@
 
 
 <meta property="og:type" content="website">
-<meta property="og:title" content="兔子爱吃蛋炒饭">
+<meta property="og:title" content="唐牛才是食神">
 <meta property="og:url" content="http:&#x2F;&#x2F;yoursite.com&#x2F;index.html">
-<meta property="og:site_name" content="兔子爱吃蛋炒饭">
+<meta property="og:site_name" content="唐牛才是食神">
 <meta property="og:locale" content="en">
 <meta name="twitter:card" content="summary">
 
@@ -120,7 +120,7 @@
 
 
 
-  <title>兔子爱吃蛋炒饭</title>
+  <title>唐牛才是食神</title>
   
 
 
@@ -151,7 +151,7 @@
     <div class="custom-logo-site-title">
       <a href="/"  class="brand" rel="start">
         <span class="logo-line-before"><i></i></span>
-        <span class="site-title">兔子爱吃蛋炒饭</span>
+        <span class="site-title">唐牛才是食神</span>
         <span class="logo-line-after"><i></i></span>
       </a>
     </div>
@@ -258,6 +258,131 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/11/28/gorm-trace%E8%BF%BD%E8%B8%AA%E5%AE%9E%E8%B7%B5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Ricky Wang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="唐牛才是食神">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/11/28/gorm-trace%E8%BF%BD%E8%B8%AA%E5%AE%9E%E8%B7%B5/" itemprop="url">gorm trace追踪实践</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-11-28T19:49:08+08:00">
+                2019-11-28
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>现在主流服务都是使用的微服务框架，微服务给我们带来极大的方便，与此同时也带来了很多不便之处。其中一点就是在链路追踪上增加的复杂性，一般常见的方式就是通过traceid来贯穿所有的服务，联通所有的链路。但是在gorm的自带的logger中，并没有带有traceid的信息，导致我们在通过traceid查询的时候，无法定位到对应的sql。在go语言中，一般通过context来传递traceid，所以，我们希望logger 中的print函数可以携带context（传递context理论上就可以携带任何信息贯穿请求）。我们通过gorm注册函数的机制来实现这个功能。</p>
+<h1 id="gorm-trace"><a href="#gorm-trace" class="headerlink" title="gorm trace"></a>gorm trace</h1><p><a href="https://github.com/rabbitwlele/trace" target="_blank" rel="noopener">gorm trace</a></p>
+<h2 id="用法"><a href="#用法" class="headerlink" title="用法"></a>用法</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">type logger struct &#123;</span><br><span class="line">&#125;</span><br><span class="line">//实现logger接口</span><br><span class="line">func (l *logger) Print(ctx context.Context, v ...interface&#123;&#125;) &#123;</span><br><span class="line">	fmt.Println(v...)</span><br><span class="line">	fmt.Println(ctx.Value(&quot;xxx&quot;))</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func TestGormTest(t *testing.T) &#123;</span><br><span class="line">	db, err := gorm.Open(&quot;mysql&quot;, &quot;user:password@tcp(ip:port)/db?charset=utf8&amp;parseTime=True&amp;loc=Local&quot;)</span><br><span class="line">	if err != nil &#123;</span><br><span class="line">		t.Error(err)</span><br><span class="line">		return</span><br><span class="line">	&#125;</span><br><span class="line">	//设置logger对象</span><br><span class="line">	SetLogger(db, &amp;logger&#123;&#125;)</span><br><span class="line">	ctx := context.Background()</span><br><span class="line">	ctx = context.WithValue(ctx, &quot;xxx&quot;, 123)</span><br><span class="line">	//将context设置到db</span><br><span class="line">	db = WithContext(db, ctx)</span><br><span class="line">	data := &amp;Data&#123;&#125;</span><br><span class="line">	db.Where(&quot;id = ? &quot;, 292356).Table(&quot;tests&quot;).First(data)</span><br><span class="line">	defer db.Close()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/11/19/%E5%88%86%E4%BA%AB%E7%A0%81%E7%94%9F%E6%88%90%E7%AD%96%E7%95%A5/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -267,7 +392,7 @@
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="兔子爱吃蛋炒饭">
+      <meta itemprop="name" content="唐牛才是食神">
     </span>
 
     
@@ -410,7 +535,7 @@
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="兔子爱吃蛋炒饭">
+      <meta itemprop="name" content="唐牛才是食神">
     </span>
 
     
@@ -578,7 +703,7 @@
               
                 <a href="/archives%7C%7C%20history">
               
-                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-count">3</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -591,7 +716,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-count">4</span>
                   <span class="site-state-item-name">tags</span>
                 </a>
               </div>
